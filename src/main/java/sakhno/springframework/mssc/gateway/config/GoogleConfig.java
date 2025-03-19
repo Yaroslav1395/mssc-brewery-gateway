@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class GoogleConfig {
     /**
-     *
+     * Настройка маршрутизации
      * @param builder
      * @return
      */
