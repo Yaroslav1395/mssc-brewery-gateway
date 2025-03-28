@@ -8,6 +8,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LoadBalanceRoutesConfig {
 
+    /**
+     * Метод создает объект, который маршрутизирует запросы
+     * @param builder - строить для маршрутизации
+     * @return - маршрутизатор
+     */
     @Bean
     public RouteLocator loadBalanceRoutes(RouteLocatorBuilder builder) {
         return builder.routes()
