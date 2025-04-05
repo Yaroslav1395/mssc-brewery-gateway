@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.3</version>
+        <version>3.4.4</version>
         <relativePath/>
     </parent>
     <groupId>sakhno.springframework.gateway</groupId>
@@ -26,6 +26,8 @@
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
+        <docker.image.prefix>mssc-brewery-gateway</docker.image.prefix>
+        <docker.image.name>${project.artifactId}</docker.image.name>
     </properties>
     <dependencies>
         <dependency>
@@ -84,6 +86,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -105,6 +108,10 @@
 
     <build>
         <plugins>
+            <!--
+                Этот плагин отвечает за компиляцию Java-кода в проекте с использованием Maven.
+                Lombok используется для автоматического создания геттеров, сеттеров, конструкторов и других методов.
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -117,6 +124,12 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <!--
+                Этот плагин предназначен для сборки, упаковки и запуска Spring Boot приложений с использованием Maven.
+                Определяет главный класс, который будет использоваться при запуске приложения.
+                Исключает Lombok из финального JAR-файла.
+                Layers> используется в Spring Boot для разделения JAR-файла на слои при упаковке Docker-образа.
+            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -127,6 +140,41 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <layers>
+                        <includeLayerTools>true</includeLayerTools>
+                    </layers>
+                </configuration>
+            </plugin>
+            <!--
+                Этот плагин от Fabric8 используется для сборки, упаковки и загрузки Docker-образов прямо из Maven.
+                dockerHost - Определяет, как плагин взаимодействует с Docker (локально или по сети).
+                Verbose=true - Включает подробный вывод лога.
+                Name - Определяет имя Docker-образа (например, myregistry/myapp).
+                Alias - Псевдоним образа, используется в плагине.
+                DockerFileDir - Указывает, что образ собирается из Dockerfile.
+                Tags - Присваивает образу теги (latest, версия проекта).
+            -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.45.0</version>
+                <configuration>
+                    <!--<dockerHost>http://127.0.0.1:2375</dockerHost>
+                    <dockerHost>unix://var/run/docker.sock</dockerHost>-->
+                    <verbose>true</verbose>
+                    <images>
+                        <image>
+                            <name>${docker.image.prefix}/${docker.image.name}</name>
+                            <alias>${project.artifactId}</alias>
+                            <build>
+                                <dockerFileDir>${project.basedir}</dockerFileDir>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${project.version}</tag>
+                                </tags>
+                            </build>
+                        </image>
+                    </images>
                 </configuration>
             </plugin>
         </plugins>
